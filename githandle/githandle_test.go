@@ -9,7 +9,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	// TODO: test setup goes here
+	os.Exit(m.Run())
 }
 
 // test the init function

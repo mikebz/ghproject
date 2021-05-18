@@ -5,21 +5,16 @@ import (
 	"log"
 	"os"
 
-	"github.com/spf13/viper"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	fmt.Println("starting ghproject")
-	viper.AddConfigPath(".")
-	viper.SetConfigFile("config")
-	viper.SetConfigType("yml")
-	err := viper.ReadInConfig()
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error loading .env file")
 	}
 
-	for key, val := range viper.AllSettings() {
-		fmt.Println("key: ", key, ", val: ", val)
-	}
+	fmt.Println("starting ghproject")
+	fmt.Println("GITHUB_TOKEN: ", os.Getenv("GITHUB_TOKEN"))
 	os.Exit(0)
 }
