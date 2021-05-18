@@ -2,28 +2,19 @@ package ghproject
 
 import (
 	"context"
-	"log"
 	"os"
 	"testing"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
-	viper.AddConfigPath("..")
-	viper.SetConfigFile("config")
-	viper.SetConfigType("yml")
-	err := viper.ReadInConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-	os.Exit(m.Run())
+	// TODO: test setup goes here
 }
 
 // test the init function
 func TestInit(t *testing.T) {
-	testToken := viper.GetString("GITHUB_TOKEN")
+	testToken := os.Getenv("GITHUB_TOKEN")
 	ctx := context.Background()
 	gh := GitHandle{}
 	err := gh.Init(ctx, testToken)
@@ -33,7 +24,7 @@ func TestInit(t *testing.T) {
 // test repositories
 // also relies on the Init to be working
 func TestListRepos(t *testing.T) {
-	testToken := viper.GetString("GITHUB_TOKEN")
+	testToken := os.Getenv("GITHUB_TOKEN")
 	ctx := context.Background()
 	gh := GitHandle{}
 	err := gh.Init(ctx, testToken)
@@ -46,7 +37,7 @@ func TestListRepos(t *testing.T) {
 
 // search for open issues in the kpt repo.  Should return some results.
 func TestSearchIssues(t *testing.T) {
-	testToken := viper.GetString("GITHUB_TOKEN")
+	testToken := os.Getenv("GITHUB_TOKEN")
 	ctx := context.Background()
 	gh := GitHandle{}
 	err := gh.Init(ctx, testToken)
