@@ -48,10 +48,20 @@ func TestSearchIssues(t *testing.T) {
 }
 
 func TestSearchIssuesMilestone(t *testing.T) {
-	issues, err := gh.SearchIssues("state:open repo:GoogleContainerTools/kpt milestone:\"v1.0 m3\"", ctx)
+	issues, err := gh.SearchIssues("repo:GoogleContainerTools/kpt milestone:\"v1.0 m3\"", ctx)
 	assert.NoError(t, err)
 	assert.NotNil(t, issues)
 	assert.Greater(t, len(issues), 0)
+}
+
+// This is a known set of issues which doesn't fit into one page.
+// At the time of writing there was a pagination limit of 30 issues
+// fo the search API.  We need to make sure we get more than 30.
+func TestSearchMultiPage(t *testing.T) {
+	issues, err := gh.SearchIssues("state:open repo:GoogleContainerTools/kpt", ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, issues)
+	assert.Greater(t, len(issues), 30, "Received less than 31 issues, we are not paginating")
 }
 
 func TestListMilestones(t *testing.T) {

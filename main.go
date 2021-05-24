@@ -1,20 +1,38 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"os"
 
 	"github.com/joho/godotenv"
+	ghproject "mikebz.com/ghproject/githandle"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	godotenv.Load()
+	testToken := os.Getenv("GITHUB_TOKEN")
+	if testToken == "" {
+		log.Fatal("GITHUB_TOKEN is empty, please set the environment variable to github token or create a .env file")
 	}
 
-	fmt.Println("starting ghproject")
-	fmt.Println("GITHUB_TOKEN: ", os.Getenv("GITHUB_TOKEN"))
-	os.Exit(0)
+	gh := ghproject.GitHandle{}
+	ctx := context.Background()
+	err := gh.Init(ctx, testToken)
+	if err != nil {
+		log.Fatal("Could not init GitHub handle with ", testToken,
+			", Error: ", err)
+	}
+
+	issues, err := gh.SearchIssues("state:open repo:GoogleContainerTools/kpt milestone:\"v1.0 m3\"", ctx)
+	if err != nil {
+		log.Fatal("Could not get the test token ", err)
+	}
+
+	log.Println("Total issues: ", len(issues))
+
+	for _, issue := range issues {
+		assignee := issue.GetAssignee()
+		log.Println(issue.GetNumber(), assignee.GetLogin())
+	}
 }

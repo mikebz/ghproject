@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"log"
+
 	"github.com/google/go-github/v33/github"
 	"golang.org/x/oauth2"
 )
@@ -44,13 +46,31 @@ func (gh *GitHandle) SearchIssues(q string, ctx context.Context) ([]*github.Issu
 		return nil, errors.New(INIT_ERROR)
 	}
 	opts := &github.SearchOptions{}
-	result, _, err := gh.client.Search.Issues(ctx, q, opts)
-	if err != nil {
-		return nil, err
+	opts.Page = 1
+
+	var allIssues []*github.Issue
+
+	for more := true; more; {
+		result, response, err := gh.client.Search.Issues(ctx, q, opts)
+		if err != nil {
+			log.Printf("Received an error from search %v", err)
+			return nil, err
+		}
+
+		allIssues = append(allIssues, result.Issues...)
+		log.Printf("Length of allIssues is %d", len(allIssues))
+		log.Printf("Response.LastPage is %d and opts.Page is %d", response.LastPage, opts.Page)
+
+		// looking at the result of the API it looks like they set the LastPage
+		// to zero when you are on the last page.
+		if response.LastPage == 0 {
+			more = false
+		} else {
+			opts.Page++
+		}
 	}
 
-	// TODO: handle the multi page return
-	return result.Issues, nil
+	return allIssues, nil
 }
 
 // call this to get a list of milestones that are open
