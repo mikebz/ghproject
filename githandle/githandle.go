@@ -52,3 +52,11 @@ func (gh *GitHandle) SearchIssues(q string, ctx context.Context) ([]*github.Issu
 	// TODO: handle the multi page return
 	return result.Issues, nil
 }
+
+// call this to get a list of milestones that are open
+func (gh *GitHandle) ListMilestones(owner string, repo string, ctx context.Context) ([]*github.Milestone, error) {
+	issuesService := gh.client.Issues
+	// TODO: deal with multiple pages (eventually)
+	milestones, _, err := issuesService.ListMilestones(ctx, owner, repo, nil)
+	return milestones, err
+}

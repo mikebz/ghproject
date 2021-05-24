@@ -10,34 +10,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var gh GitHandle
+var ctx context.Context
+
 func TestMain(m *testing.M) {
 	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	os.Exit(m.Run())
-}
 
-// test the init function
-func TestInit(t *testing.T) {
 	testToken := os.Getenv("GITHUB_TOKEN")
-	assert.NotEmpty(t, testToken)
-	ctx := context.Background()
-	gh := GitHandle{}
-	err := gh.Init(ctx, testToken)
-	assert.NoError(t, err)
+	gh = GitHandle{}
+	ctx = context.Background()
+	err = gh.Init(ctx, testToken)
+	if err != nil {
+		log.Fatal("Could not init GitHub handle with ", testToken,
+			", Error: ", err)
+	}
+
+	os.Exit(m.Run())
 }
 
 // test repositories
 // also relies on the Init to be working
 func TestListRepos(t *testing.T) {
-	testToken := os.Getenv("GITHUB_TOKEN")
-	assert.NotEmpty(t, testToken)
-	ctx := context.Background()
-	gh := GitHandle{}
-	err := gh.Init(ctx, testToken)
-	assert.Nil(t, err)
-
 	repos, err := gh.ListRepos(ctx)
 	assert.NoError(t, err)
 	assert.NotNil(t, repos)
@@ -45,13 +41,6 @@ func TestListRepos(t *testing.T) {
 
 // search for open issues in the kpt repo.  Should return some results.
 func TestSearchIssues(t *testing.T) {
-	testToken := os.Getenv("GITHUB_TOKEN")
-	assert.NotEmpty(t, testToken)
-	ctx := context.Background()
-	gh := GitHandle{}
-	err := gh.Init(ctx, testToken)
-	assert.Nil(t, err)
-
 	issues, err := gh.SearchIssues("state:open repo:GoogleContainerTools/kpt", ctx)
 	assert.NoError(t, err)
 	assert.NotNil(t, issues)
@@ -59,15 +48,15 @@ func TestSearchIssues(t *testing.T) {
 }
 
 func TestSearchIssuesMilestone(t *testing.T) {
-	testToken := os.Getenv("GITHUB_TOKEN")
-	assert.NotEmpty(t, testToken)
-	ctx := context.Background()
-	gh := GitHandle{}
-	err := gh.Init(ctx, testToken)
-	assert.Nil(t, err)
-
 	issues, err := gh.SearchIssues("state:open repo:GoogleContainerTools/kpt milestone:\"v1.0 m3\"", ctx)
 	assert.NoError(t, err)
 	assert.NotNil(t, issues)
 	assert.Greater(t, len(issues), 0)
+}
+
+func TestListMilestones(t *testing.T) {
+	milestones, err := gh.ListMilestones("GoogleContainerTools", "kpt", ctx)
+	assert.NoError(t, err)
+	assert.NotNil(t, milestones)
+	assert.Greater(t, len(milestones), 0)
 }
