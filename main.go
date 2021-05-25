@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/joho/godotenv"
-	ghproject "mikebz.com/ghproject/githandle"
+	githandle "mikebz.com/ghproject/githandle"
+	stats "mikebz.com/ghproject/stats"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 		log.Fatal("GITHUB_TOKEN is empty, please set the environment variable to github token or create a .env file")
 	}
 
-	gh := ghproject.GitHandle{}
+	gh := githandle.GitHandle{}
 	ctx := context.Background()
 	err := gh.Init(ctx, testToken)
 	if err != nil {
@@ -32,18 +33,24 @@ func main() {
 
 	log.Println("Total issues: ", len(issues))
 
-	for _, issue := range issues {
-		assignee := issue.GetAssignee()
+	allData := make([]stats.IssueData, len(issues))
 
-		// concat all the labels
-		var builder strings.Builder
-		for _, label := range issue.Labels {
-			if builder.Len() > 0 {
-				builder.WriteString(", ")
-			}
-			builder.WriteString(*label.Name)
+	for i, issue := range issues {
+		issueData := stats.IssueData{}
+		issueData.Assignee = issue.GetAssignee().GetLogin()
+
+		issueData.Labels = make([]string, len(issue.Labels))
+		for i, label := range issue.Labels {
+			issueData.Labels[i] = label.GetName()
 		}
 
-		log.Println(issue.GetNumber(), assignee.GetLogin(), ": ", builder.String())
+		issueData.Id = issue.GetNumber()
+		allData[i] = issueData
+	}
+
+	workload := stats.WorkloadByUser(allData)
+
+	for user, days := range workload {
+		fmt.Println("user: ", user, ", days: ", days)
 	}
 }
