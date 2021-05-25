@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	ghproject "mikebz.com/ghproject/githandle"
@@ -33,6 +34,16 @@ func main() {
 
 	for _, issue := range issues {
 		assignee := issue.GetAssignee()
-		log.Println(issue.GetNumber(), assignee.GetLogin())
+
+		// concat all the labels
+		var builder strings.Builder
+		for _, label := range issue.Labels {
+			if builder.Len() > 0 {
+				builder.WriteString(", ")
+			}
+			builder.WriteString(*label.Name)
+		}
+
+		log.Println(issue.GetNumber(), assignee.GetLogin(), ": ", builder.String())
 	}
 }
